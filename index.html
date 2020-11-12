@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Win / Loss Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Concert One' rel='stylesheet'>
+    <style>
+        html, body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            padding: 20px 20px 20px 20px;
+            font-size: 50px;
+            box-sizing: border-box;
+            background-color: black;
+            font-family: 'Concert One';
+        }
+
+        #app {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+        
+        #grid-container {
+            width: 80%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: 150px 100px auto;
+            row-gap: 4%;
+            column-gap: 2%;
+            grid-template-areas: 
+                "rate    rate    rate"
+                "ours    theirs  submit"
+                "results results results";
+        }
+
+        #rate {
+            grid-area: rate;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #ours {
+            grid-area: ours;
+        }
+        
+        #theirs {
+            grid-area: theirs;
+        }
+
+        #submit {
+            grid-area: submit;
+        }
+
+        #result-history {
+            grid-area: results;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+        }
+
+        .result-container {
+            width: calc(10% - 10px);
+            height: 20%;
+            margin: 5px 5px 5px 5px;
+            box-sizing: border-box;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            grid-template-areas: 
+            "r-game .      .      .        .        .       "
+            "r-ours r-ours r-ours r-theirs r-theirs r-theirs"
+            "r-ours r-ours r-ours r-theirs r-theirs r-theirs"
+            "r-ours r-ours r-ours r-theirs r-theirs r-theirs";
+            background-color: red;
+        }
+
+        .r-game {
+            grid-area: r-game;
+            font-size: 40px;
+            border-right: 3px solid black;
+        }
+
+        .r-ours {
+            grid-area: r-ours;
+            border-right: 3px solid black;
+            border-top: 3px solid black;
+        }
+
+        .r-theirs {
+            grid-area: r-theirs;
+            border-top: 3px solid black;
+        }
+        
+        .r-text {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .result {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+        }
+
+        .win {
+            background-color: green;
+        }
+
+        .input {
+            text-align: center;
+            font-size: inherit;
+            font-family: inherit;
+            border: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .btn {
+            width: 100%;
+            height: 100%;
+            font-size: inherit;
+            font-family: inherit;
+            border: none;
+        }
+    </style>
+  </head>
+  <body>
+      <div id="app">
+        <div id="grid-container">
+            <div id="rate" :style="{ backgroundColor: winRateColor }">
+                <span>{{ winRatePercentage }}%</span>
+            </div>
+            <input id="ours" v-model.number="ours" class="input" type="number" placeholder="0"></input>
+            <input id="theirs" v-model.number="theirs" class="input" type="number" placeholder="0"></input>
+            <button id="submit" class="btn" @click="submitResult" :disabled="ours === null || theirs === null || ours === theirs ? true : false">Submit</button>
+            <div id="result-history">
+                <template v-for="(result, index) in results">
+                    <div class="result-container" :class="{ win: result.win }">
+                        <div class="r-game r-text">
+                            <span>{{ index + 1 }}</span>
+                        </div>
+                        <div class="r-ours r-text">
+                            <span>{{ result.ours }}</span>
+                        </div>
+                        <div class="r-theirs r-text">
+                            <span>{{ result.theirs }}</span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+      </div>
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                results: [],
+                rate: 0,
+                ours: null,
+                theirs: null,
+            },
+            watch: {
+                results(val) {
+                    let wins = val.reduce((acc, cur) => {
+                        if (cur.win) {
+                            return acc += 1;
+                        }
+                        return acc;
+                    }, 0);
+
+                    let rate = wins / val.length;
+                    this.rate = Number.isNaN(rate) ? 0 : rate;
+                },
+            },
+            computed: {
+                winRatePercentage() {     
+                    return (this.rate * 100).toFixed(2);
+                },
+                winRateColor() {
+                    let red = 255 * (1 - this.rate);
+                    let green = 255 * (this.rate);
+                    return "rgb(" + red + "," + green + ",0)";
+                },
+            },
+            methods: {
+                submitResult() {
+                    this.results.push({
+                        ours: this.ours,
+                        theirs: this.theirs,
+                        win: this.ours > this.theirs
+                    });
+
+                    this.ours = null;
+                    this.theirs = null;
+                },
+            }
+        })
+    </script>
+  </body>
+</html>

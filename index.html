@@ -81,7 +81,6 @@
             "r-ours r-ours r-ours r-theirs r-theirs r-theirs"
             "r-ours r-ours r-ours r-theirs r-theirs r-theirs"
             "r-ours r-ours r-ours r-theirs r-theirs r-theirs";
-            background-color: red;
         }
 
         .r-game {
@@ -115,10 +114,6 @@
             text-align: center;
         }
 
-        .win {
-            background-color: green;
-        }
-
         .input {
             text-align: center;
             font-size: inherit;
@@ -148,7 +143,7 @@
             <button id="submit" class="btn" @click="submitResult" :disabled="ours === null || theirs === null || ours === theirs ? true : false">Submit</button>
             <div id="result-history">
                 <template v-for="(result, index) in results">
-                    <div class="result-container" :class="{ win: result.win }">
+                    <div class="result-container" :style="{ backgroundColor:  result.backgroundColor }">
                         <div class="r-game r-text">
                             <span>{{ index + 1 }}</span>
                         </div>
@@ -200,13 +195,28 @@
                     this.results.push({
                         ours: this.ours,
                         theirs: this.theirs,
-                        win: this.ours > this.theirs
+                        win: this.ours > this.theirs,
+                        backgroundColor: this.getBackgroundColor() 
                     });
 
                     this.ours = null;
                     this.theirs = null;
                 },
-            }
+                getBackgroundColor() {
+                    const max = 5;
+                    const colMin = 128;
+                    let diff = this.ours - this.theirs
+                    if (diff > 0) {
+                        let up = this.ours / max;
+                        let green = colMin + (255 - colMin) * up;
+                        return "rgb(0," + green + ",0)";
+                    } else {
+                        let down = this.theirs / max;
+                        let red = colMin + (255 - colMin) * down;
+                        return "rgb(" + red + ",0,0)";
+                    }
+                },
+            },
         })
     </script>
   </body>

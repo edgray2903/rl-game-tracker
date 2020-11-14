@@ -77,7 +77,7 @@
             grid-template-columns: repeat(6, 1fr);
             grid-template-rows: repeat(4, 1fr);
             grid-template-areas: 
-            "r-game .      .      .        .        .       "
+            "r-game .      .      .        .        r-delete"
             "r-ours r-ours r-ours r-theirs r-theirs r-theirs"
             "r-ours r-ours r-ours r-theirs r-theirs r-theirs"
             "r-ours r-ours r-ours r-theirs r-theirs r-theirs";
@@ -85,8 +85,15 @@
 
         .r-game {
             grid-area: r-game;
-            font-size: 40px;
             border-right: 3px solid black;
+        }
+
+        .r-delete {
+            grid-area: r-delete;
+        }
+
+        .r-detail {
+            font-size: 40px;
         }
 
         .r-ours {
@@ -144,8 +151,11 @@
             <div id="result-history">
                 <template v-for="(result, index) in results">
                     <div class="result-container" :style="{ backgroundColor:  result.backgroundColor }">
-                        <div class="r-game r-text">
+                        <div class="r-game r-detail">
                             <span>{{ index + 1 }}</span>
+                        </div>
+                        <div class="r-delete r-detail" @click="deleteResult(index)">
+                            <span>X</span>
                         </div>
                         <div class="r-ours r-text">
                             <span>{{ result.ours }}</span>
@@ -216,6 +226,9 @@
                         return "rgb(" + red + ",0,0)";
                     }
                 },
+                deleteResult(index) {
+                    this.results.splice(index, 1);
+                }
             },
         })
     </script>

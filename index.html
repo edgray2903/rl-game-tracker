@@ -138,8 +138,8 @@
             <div id="rate" :style="{ backgroundColor: winRateColor }">
                 <span>{{ winRatePercentage }}%</span>
             </div>
-            <input id="ours" v-model.number="ours" class="input" type="number" placeholder="0"></input>
-            <input id="theirs" v-model.number="theirs" class="input" type="number" placeholder="0"></input>
+            <input id="ours" v-model.number="ours" class="input" type="number" placeholder="ours"></input>
+            <input id="theirs" v-model.number="theirs" class="input" type="number" placeholder="thiers"></input>
             <button id="submit" class="btn" @click="submitResult" :disabled="ours === null || theirs === null || ours === theirs ? true : false">Submit</button>
             <div id="result-history">
                 <template v-for="(result, index) in results">

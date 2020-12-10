@@ -29,12 +29,13 @@
             height: 100%;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: 150px 100px auto;
+            grid-template-rows: 150px 100px 75px auto;
             row-gap: 4%;
             column-gap: 2%;
             grid-template-areas: 
-                "rate    rate    rate"
-                "ours    theirs  submit"
+                "rate    rate    rate   "
+                "ours    theirs  submit "
+                "filter  .       .      "
                 "results results results";
         }
 
@@ -59,6 +60,13 @@
             grid-area: submit;
         }
 
+        #filter {
+            grid-area: filter;
+            text-align: center;
+            text-align-last: center;
+            -moz-text-align-last: center;
+        }
+
         #result-history {
             grid-area: results;
             width: 100%;
@@ -70,7 +78,7 @@
 
         .result-container {
             width: calc(10% - 10px);
-            height: 20%;
+            height: 115px;
             margin: 5px 5px 5px 5px;
             box-sizing: border-box;
             display: grid;
@@ -146,15 +154,22 @@
                 <span>{{ winRatePercentage }}%</span>
             </div>
             <input id="ours" v-model.number="ours" class="input" type="number" placeholder="ours"></input>
-            <input id="theirs" v-model.number="theirs" class="input" type="number" placeholder="thiers"></input>
+            <input id="theirs" v-model.number="theirs" class="input" type="number" placeholder="theirs"></input>
             <button id="submit" class="btn" @click="submitResult" :disabled="ours === null || theirs === null || ours === theirs ? true : false">Submit</button>
+            <select name="filter" id="filter" class="btn" v-model="filter">
+                <option value="today">Today's Results</option>
+                <option value="yesterday">Yesterday + Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="all">All Time</option>
+            </select>
             <div id="result-history">
-                <template v-for="(result, index) in results">
+                <template v-for="(result, index) in filteredResults">
                     <div class="result-container" :style="{ backgroundColor:  result.backgroundColor }">
                         <div class="r-game r-detail">
                             <span>{{ index + 1 }}</span>
                         </div>
-                        <div class="r-delete r-detail" @click="deleteResult(index)">
+                        <div class="r-delete r-detail" @click="deleteResult(result.recordedDateTime)">
                             <span>X</span>
                         </div>
                         <div class="r-ours r-text">
@@ -176,9 +191,21 @@
                 rate: 0,
                 ours: null,
                 theirs: null,
+                filter: "today",
+                filteredResults: []
+            },
+            mounted() {
+                let resultsJSON = localStorage.getItem('results');
+                this.results = JSON.parse(resultsJSON);
             },
             watch: {
+                filter(val) {
+                    this.updateFilteredResults(val);
+                },
                 results(val) {
+                    this.updateFilteredResults(val);
+                },
+                filteredResults(val) {
                     let wins = val.reduce((acc, cur) => {
                         if (cur.win) {
                             return acc += 1;
@@ -206,11 +233,14 @@
                         ours: this.ours,
                         theirs: this.theirs,
                         win: this.ours > this.theirs,
-                        backgroundColor: this.getBackgroundColor() 
+                        backgroundColor: this.getBackgroundColor(),
+                        recordedDateTime: new Date()
                     });
 
                     this.ours = null;
                     this.theirs = null;
+
+                    localStorage.setItem('results', JSON.stringify(this.results));
                 },
                 getBackgroundColor() {
                     const max = 3;
@@ -226,8 +256,38 @@
                         return "rgb(" + red + ",0,0)";
                     }
                 },
-                deleteResult(index) {
+                deleteResult(date) {
+                    let index = this.results.findIndex(result => result.recordedDateTime === date);
                     this.results.splice(index, 1);
+                    localStorage.setItem('results', JSON.stringify(this.results));
+                },
+                updateFilteredResults(val) {
+                    let date = new Date();
+                    date.setMilliseconds(0);
+                    date.setSeconds(0);
+                    date.setMinutes(0);
+                    date.setHours(0);
+
+                    switch (this.filter) {
+                        case "today":
+                            this.filteredResults = this.results.filter(result => new Date(result.recordedDateTime) >= date);
+                            break;
+                        case "yesterday":
+                            date.setDate(new Date().getDate() - 1);
+                            this.filteredResults = this.results.filter(result => new Date(result.recordedDateTime) >= date);
+                            break;
+                        case "week":
+                            date.setDate(new Date().getDate() - 7);
+                            this.filteredResults = this.results.filter(result => new Date(result.recordedDateTime) >= date);
+                            break;
+                        case "month":
+                            date.setDate(new Date().getMonth() - 1);
+                            this.filteredResults = this.results.filter(result => new Date(result.recordedDateTime) >= date);
+                            break;
+                        default:
+                            this.filteredResults = this.results;
+                            break;
+                    }
                 }
             },
         })

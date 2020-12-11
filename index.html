@@ -196,8 +196,8 @@
             },
             mounted() {
                 let resultsJSON = localStorage.getItem('results');
-                this.results = JSON.parse(resultsJSON);
                 this.results = resultsJSON === null ? [] : JSON.parse(resultsJSON);
+                this.results.forEach(result => result.recordedDateTime = new Date(result.recordedDateTime));
             },
             watch: {
                 filter(val) {

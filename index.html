@@ -197,6 +197,7 @@
             mounted() {
                 let resultsJSON = localStorage.getItem('results');
                 this.results = JSON.parse(resultsJSON);
+                this.results = resultsJSON === null ? [] : JSON.parse(resultsJSON);
             },
             watch: {
                 filter(val) {
